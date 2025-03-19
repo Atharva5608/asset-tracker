@@ -16,9 +16,14 @@ import {
   InputLabel,
   FormControl,
   Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  SelectChangeEvent,
 } from "@mui/material";
 
-const sampleAssets = [
+const initialAssets = [
   {
     id: 1,
     name: "Office Laptop",
@@ -54,10 +59,65 @@ const sampleAssets = [
 ];
 
 const Assets: React.FC = () => {
+  const [assets, setAssets] = useState(initialAssets);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [open, setOpen] = useState(false);
 
-  const filteredAssets = sampleAssets.filter(
+  // Form States
+  const [newAsset, setNewAsset] = useState({
+    name: "",
+    category: "",
+    purchasePrice: "",
+    purchaseDate: "",
+    depreciation: "",
+  });
+
+  // Handle opening and closing the modal
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => {
+    setNewAsset({
+      name: "",
+      category: "",
+      purchasePrice: "",
+      purchaseDate: "",
+      depreciation: "",
+    });
+    setOpen(false);
+  };
+
+  // Handle form input change
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setNewAsset((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handle dropdown change (Fix applied here)
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    setNewAsset((prev) => ({ ...prev, category: e.target.value }));
+  };
+
+  // Handle adding new asset
+  const handleAddAsset = () => {
+    if (
+      !newAsset.name ||
+      !newAsset.category ||
+      !newAsset.purchasePrice ||
+      !newAsset.purchaseDate ||
+      !newAsset.depreciation
+    ) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    setAssets([...assets, { id: assets.length + 1, ...newAsset }]);
+    handleClose();
+  };
+
+  // Filtered assets
+  const filteredAssets = assets.filter(
     (asset) =>
       asset.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
       (categoryFilter === "" || asset.category === categoryFilter)
@@ -96,7 +156,12 @@ const Assets: React.FC = () => {
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={2}>
-          <Button fullWidth variant="contained" color="primary">
+          <Button
+            fullWidth
+            variant="contained"
+            color="primary"
+            onClick={handleOpen}
+          >
             + Add Asset
           </Button>
         </Grid>
@@ -135,6 +200,72 @@ const Assets: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Add Asset Dialog */}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle>Add New Asset</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Asset Name"
+            name="name"
+            variant="outlined"
+            sx={{ mt: 2 }}
+            value={newAsset.name}
+            onChange={handleInputChange}
+          />
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              name="category"
+              value={newAsset.category}
+              onChange={handleSelectChange}
+            >
+              <MenuItem value="Electronics">Electronics</MenuItem>
+              <MenuItem value="Vehicle">Vehicle</MenuItem>
+              <MenuItem value="Equipment">Equipment</MenuItem>
+              <MenuItem value="Furniture">Furniture</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            label="Purchase Price"
+            name="purchasePrice"
+            variant="outlined"
+            sx={{ mt: 2 }}
+            value={newAsset.purchasePrice}
+            onChange={handleInputChange}
+          />
+          <TextField
+            fullWidth
+            type="date"
+            label="Purchase Date"
+            name="purchaseDate"
+            InputLabelProps={{ shrink: true }}
+            variant="outlined"
+            sx={{ mt: 2 }}
+            value={newAsset.purchaseDate}
+            onChange={handleInputChange}
+          />
+          <TextField
+            fullWidth
+            label="Depreciation"
+            name="depreciation"
+            variant="outlined"
+            sx={{ mt: 2 }}
+            value={newAsset.depreciation}
+            onChange={handleInputChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="error">
+            Cancel
+          </Button>
+          <Button onClick={handleAddAsset} color="primary">
+            Add Asset
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
